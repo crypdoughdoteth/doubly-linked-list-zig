@@ -105,11 +105,10 @@ const List = struct {
         
         if (self.tail) |tail| {
             if (tail.previous) |prev| {
-                tail = prev;
+                self.tail = prev;
             }
         }
-         self.length -=1; 
-
+        self.length -=1; 
         return old_tail; 
     }
 };
@@ -193,4 +192,17 @@ test "pop_front" {
     assert( my_list.pop_front().?.value  == 420);
     assert( my_list.pop_front().?.value  == 24);
     assert( my_list.pop_front().?.value  == 69420);
+}
+
+test "pop_back" {
+    var my_list = List.new();
+    var new_node = Node.new(69420);
+    var node_2 = Node.new(24);
+    var node_3 = Node.new(420);
+    my_list.append(&new_node);
+    my_list.append(&node_2);
+    my_list.append(&node_3);
+    assert( my_list.pop_back().?.value == 420);
+    assert( my_list.pop_back().?.value == 24);
+    assert( my_list.pop_back().?.value == 69420);
 }
