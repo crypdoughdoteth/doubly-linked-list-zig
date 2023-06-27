@@ -64,15 +64,21 @@ const List = struct {
         }
     }
     
-    pub fn get_ptr_at(self: *List, pos: u32) ?*Node {
-        var base_case = self.head orelse return null;
-        for (0..self.length) |index| {
-            if (index == pos - 1) {
-                return &base_case;
+    pub fn get_ptr_at(self: List, pos: u32) ?*Node {
+        
+        if (self.head) |head| {
+            var base_case = head; 
+            for (0..self.length) |index| {
+                if (index == pos) {
+                    return base_case;
+                }
+                if (base_case.next) |base| {
+                    base_case = base;
+                }                
             }
-            base_case = base_case.next orelse return null;
-
-        }
+            return base_case;
+        } 
+        return null;
     }
     pub fn delete_at(self: *List, pos: u32) !void {
         var base_case = self.head.?;
@@ -205,4 +211,16 @@ test "pop_back" {
     assert( my_list.pop_back().?.value == 420);
     assert( my_list.pop_back().?.value == 24);
     assert( my_list.pop_back().?.value == 69420);
+}
+
+test "get pointer at" {
+    var my_list = List.new();
+    var new_node = Node.new(69420);
+    var node_2 = Node.new(24);
+    var node_3 = Node.new(420);
+    my_list.append(&new_node);
+    my_list.append(&node_2);
+    my_list.append(&node_3);
+    print("\n\n{}\n", .{my_list.get_ptr_at(1).?});
+    assert(my_list.get_ptr_at(1).? == my_list.head.?.next.?);
 }
