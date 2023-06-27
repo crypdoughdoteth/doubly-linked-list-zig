@@ -22,7 +22,6 @@ const List = struct {
         return &self.tail.?;
     }
     
-
     pub fn append(self: *List, new_node: *Node) void {
         if (self.tail) |tail| {
             new_node.previous = self.tail; 
@@ -106,7 +105,7 @@ const List = struct {
         
         if (self.tail) |tail| {
             if (tail.previous) |prev| {
-                self.tail = prev;
+                tail = prev;
             }
         }
          self.length -=1; 
@@ -181,4 +180,17 @@ test "Prepend" {
     assert(head.next == middle_val);
     assert(middle_val.next  == tail);
     assert(tail.previous == middle_val);
+}
+
+test "pop_front" {
+    var my_list = List.new();
+    var new_node = Node.new(420);
+    var node_2 = Node.new(24);
+    var node_3 = Node.new(69420);
+    my_list.append(&new_node);
+    my_list.append(&node_2);
+    my_list.append(&node_3);
+    assert( my_list.pop_front().?.value  == 420);
+    assert( my_list.pop_front().?.value  == 24);
+    assert( my_list.pop_front().?.value  == 69420);
 }
