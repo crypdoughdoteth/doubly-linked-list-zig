@@ -1,5 +1,6 @@
 const std = @import("std");
 const assert = @import("std").debug.assert;
+const print = @import("std").debug.print;
 
 const List = struct {
     length: u32,
@@ -21,11 +22,28 @@ const List = struct {
         return &self.tail.?;
     }
     
+
+    pub fn append(self: *List, new_node: *Node) void {
+        if (self.tail) |tail| {
+            new_node.previous = self.tail; 
+            tail.next = new_node;
+        }
+        if (self.head == null) {
+            self.head = new_node;
+        } 
+        self.tail = new_node; 
+        self.length +=1; 
+    }   
+
+
     pub fn prepend(self: *List, new_node: *Node) void {
-        
+
         if (self.head) |head| {
-            new_node.next = head;
-            head.previous = new_node;
+            head.previous = new_node; 
+            new_node.next = self.head;
+        }        
+        if (self.tail == null) {
+            self.tail = new_node;
         }
         self.head = new_node; 
         self.length +=1; 
@@ -70,15 +88,6 @@ const List = struct {
             self.length -= 1;
         }
     }
-
-    pub fn append(self: *List, new_node: *Node) void {
-        if (self.tail) |tail| {
-            tail.next = new_node;
-            new_node.previous = tail; 
-        }
-        self.tail = new_node; 
-        self.length +=1; 
-    }   
 
     pub fn pop_front(self: *List) ?*Node {
         var old_head: ?*Node = self.head;
@@ -131,24 +140,45 @@ const Node = struct {
 
 };
 
-const print = @import("std").debug.print;
 
 pub fn main() !void {
-    print("It Works!\n", .{});
+    print("sup", .{});
 }
 
-test "Basics" {
+test "Append" {
     var my_list = List.new();
     var new_node = Node.new(420);
-    var node_2 = Node.new(0o24);
+    var node_2 = Node.new(24);
     var node_3 = Node.new(69420);
     my_list.append(&new_node);
     my_list.append(&node_2);
     my_list.append(&node_3);
-    const head = my_list.head orelse return;
-    const tail = my_list.tail orelse return;
+    print("\n\n{}\n", .{my_list.head.?});
+    print("\n{}\n\n", .{my_list.tail.?});
+    const head = my_list.head orelse return; 
     const middle_val = head.next orelse return; 
-    assert(head.value == 420);
-    assert(middle_val.value  == 0o42);
-    assert(tail.value == 69420);
+    const tail = middle_val.next orelse return;
+    assert(head == middle_val.previous);
+    assert(head.next == middle_val);
+    assert(middle_val.next  == tail);
+    assert(tail.previous == middle_val);
+}
+
+test "Prepend" {
+    var my_list = List.new();
+    var new_node = Node.new(420);
+    var node_2 = Node.new(24);
+    var node_3 = Node.new(69420);
+    my_list.prepend(&new_node);
+    my_list.prepend(&node_2);
+    my_list.prepend(&node_3);
+    print("\n\n{}\n", .{my_list.head.?});
+    print("\n{}\n\n", .{my_list.tail.?});
+    const head = my_list.head orelse return; 
+    const middle_val = head.next orelse return; 
+    const tail = middle_val.next orelse return;
+    assert(head == middle_val.previous);
+    assert(head.next == middle_val);
+    assert(middle_val.next  == tail);
+    assert(tail.previous == middle_val);
 }
