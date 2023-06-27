@@ -2,6 +2,11 @@ const std = @import("std");
 const assert = @import("std").debug.assert;
 const print = @import("std").debug.print;
 
+const ListError = error {
+    EndOfList,
+    EmptyList,
+};
+
 const List = struct {
     length: u32,
     head: ?*Node,
@@ -51,6 +56,7 @@ const List = struct {
     pub fn insert_after(self: *List, new_node: *Node, pos: u32) void {
         if (pos > self.length) {
             self.append(new_node);
+            return;
         }
         
         if (self.head) |head| {
@@ -71,12 +77,12 @@ const List = struct {
                 if (base_case.next) |base| {
                     base_case = base;
                 }         
-                self.length += 1;   
             }
         } else {
             self.append(new_node);
+            return;
         }
-
+        self.length += 1; 
     }
     
     pub fn get_ptr_at(self: List, pos: u32) ?*Node {
@@ -96,17 +102,30 @@ const List = struct {
         return null;
     }
     pub fn delete_at(self: *List, pos: u32) !void {
-        var base_case = self.head.?;
-        for (0..self.length) |index| {
-            if (index == pos - 2 and index + 2 < self.length) {
-                var two_forward = base_case.next.?.next.?;
-                base_case.next  = two_forward;
-                two_forward.previous = base_case;
-                break;
+        if (self.head) |head| {
+            var base_case = head; 
+            for (0..self.length) |index| {
+                if (index == pos - 1 and index + 2 < self.length) {
+                    if (base_case.next) |del_node| {
+                        print("{}",.{del_node.value});
+                        if (del_node.next) |n2| {
+                            base_case.next = n2;
+                            n2.previous = base_case;
+                        }
+                    }
+                    break;
+                }
+                if (base_case.next) |base| {
+                    base_case = base;
+                } else {
+                    return ListError.EndOfList; 
+                }
+            } else {
+                return ListError.EmptyList;
             }
-            base_case = base_case.next.?;
-            self.length -= 1;
         }
+        self.length -= 1;
+
     }
 
     pub fn pop_front(self: *List) ?*Node {
@@ -131,6 +150,20 @@ const List = struct {
         }
         self.length -=1; 
         return old_tail; 
+    }
+    
+    pub fn print_all(self: List) void {
+        if (self.head) |head| {
+            var base_case = head; 
+            for (0..self.length + 1) |index| {
+                print("\n{}, {}\n", .{base_case.value, index});
+                if (base_case.next) |next| {
+                    base_case = next; 
+                } else {
+                    return;
+                }               
+            }
+        } 
     }
 };
 
@@ -251,4 +284,20 @@ test "Insert After" {
     my_list.append(&node_3);
     my_list.insert_after(&node_4, 0);
     assert(my_list.head.?.next.? == &node_4);
+}
+
+test "Delete at" {
+    var my_list = List.new();
+    var new_node = Node.new(420);
+    var node_2 = Node.new(24);
+    var node_3 = Node.new(69420);
+    var node_4 = Node.new(123);
+    var node_5 = Node.new(321);
+    my_list.append(&new_node);
+    my_list.append(&node_2);
+    my_list.append(&node_3);
+    my_list.append(&node_4);
+    my_list.append(&node_5);
+    try my_list.delete_at(3);
+    my_list.print_all();
 }
