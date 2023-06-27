@@ -48,20 +48,35 @@ const List = struct {
         self.length +=1; 
     }
 
-    pub fn insert_after(self: *List, new_node: *Node, pos: u32) !void {
-        var base_case = self.head.?;
-        for (0..self.length) |index| {
-            if (index == pos - 1) {
-                var far_node = base_case.next.?;
-                base_case.next = new_node;
-                new_node.previous = base_case;
-                new_node.next = far_node;
-                far_node.previous = new_node;
-                break;
-            }
-            base_case = base_case.next.?;
-            self.length += 1;   
+    pub fn insert_after(self: *List, new_node: *Node, pos: u32) void {
+        if (pos > self.length) {
+            self.append(new_node);
         }
+        
+        if (self.head) |head| {
+            var base_case = head; 
+            for (0..self.length) |index| {
+                if (index == pos) {
+                    if (base_case.next) |next| {
+                        var far_node = next.next; 
+                        base_case.next = new_node;
+                        new_node.previous = base_case;
+                        if (far_node) |far| {
+                            new_node.next = far;
+                            far.previous = new_node; 
+                        }
+                        break;
+                    }
+                }
+                if (base_case.next) |base| {
+                    base_case = base;
+                }         
+                self.length += 1;   
+            }
+        } else {
+            self.append(new_node);
+        }
+
     }
     
     pub fn get_ptr_at(self: List, pos: u32) ?*Node {
@@ -223,4 +238,17 @@ test "get pointer at" {
     my_list.append(&node_3);
     print("\n\n{}\n", .{my_list.get_ptr_at(1).?});
     assert(my_list.get_ptr_at(1).? == my_list.head.?.next.?);
+}
+
+test "Insert After" {
+    var my_list = List.new();
+    var new_node = Node.new(420);
+    var node_2 = Node.new(24);
+    var node_3 = Node.new(69420);
+    var node_4 = Node.new(333);
+    my_list.append(&new_node);
+    my_list.append(&node_2);
+    my_list.append(&node_3);
+    my_list.insert_after(&node_4, 0);
+    assert(my_list.head.?.next.? == &node_4);
 }
